@@ -2,7 +2,10 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>face-controller</h1>
-  <video id="webcam" autoplay playsinline style="transform: scaleX(-1);"></video>
+  <div style="display: flex; gap: 10px;">
+    <video id="webcam" autoplay playsinline style="transform: scaleX(-1);"></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+  </div>
   <div id="info">
     <div>Face detected: <span id="faceDetected">-</span></div>
     <div>Eye blink left: <span id="eyeBlinkLeft">-</span></div>
@@ -101,14 +104,29 @@ function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement) {
   requestAnimationFrame(() => detectFace(faceLandmarker, video))
 }
 
+function gameLoop(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext('2d')!
+
+  ctx.fillStyle = '#87CEEB'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  ctx.fillStyle = '#8B4513'
+  ctx.fillRect(0, canvas.height - 100, canvas.width, 100)
+
+  requestAnimationFrame(() => gameLoop(canvas))
+}
+
 async function main() {
   const video = await setupCamera()
   if (!video) return
+
+  const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!
 
   const faceLandmarker = await setupFaceLandmarker()
   await waitForVideoReady(video)
 
   detectFace(faceLandmarker, video)
+  gameLoop(canvas)
 }
 
 main()
