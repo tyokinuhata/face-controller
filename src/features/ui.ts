@@ -1,5 +1,7 @@
 import type { FaceScores } from './faceLandmarker'
 
+const DETECTION_THRESHOLD = 0.5
+
 export function initializeInfoUI() {
   const infoEl = document.querySelector<HTMLDivElement>('#detect-info')!
   infoEl.innerHTML = `
@@ -12,7 +14,7 @@ export function initializeInfoUI() {
 
 function updateScoreDisplay(element: HTMLSpanElement, score: number | undefined) {
   if (score !== undefined) {
-    element.textContent = `${score >= 0.5 ? 'YES' : 'NO'} (${score.toFixed(3)})`
+    element.textContent = `${score >= DETECTION_THRESHOLD ? 'YES' : 'NO'} (${score.toFixed(3)})`
   } else {
     element.textContent = '-'
   }

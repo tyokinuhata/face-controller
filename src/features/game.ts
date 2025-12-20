@@ -13,6 +13,7 @@ export class Game {
   private readonly gravity = 0.5
   private readonly jumpPower = -10
   private readonly moveSpeed = 5
+  private readonly detectionThreshold = 0.5
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -25,17 +26,16 @@ export class Game {
   }
 
   update(scores: FaceScores) {
-    if (scores.jawOpen !== undefined && scores.jawOpen >= 0.5 && !this.isJumping) {
-      this.velocityY = this.jumpPower
-      this.isJumping = true
+    if ((scores.jawOpen ?? 0) >= this.detectionThreshold) {
+      this.jump()
     }
 
-    if (scores.eyeBlinkLeft !== undefined && scores.eyeBlinkLeft >= 0.5) {
-      this.playerX -= this.moveSpeed
+    if ((scores.eyeBlinkLeft ?? 0) >= this.detectionThreshold) {
+      this.moveLeft()
     }
 
-    if (scores.eyeBlinkRight !== undefined && scores.eyeBlinkRight >= 0.5) {
-      this.playerX += this.moveSpeed
+    if ((scores.eyeBlinkRight ?? 0) >= this.detectionThreshold) {
+      this.moveRight()
     }
 
     this.playerX = Math.max(0, Math.min(this.canvas.width - this.playerSize, this.playerX))
@@ -52,13 +52,38 @@ export class Game {
     this.render()
   }
 
+  private jump() {
+    if (!this.isJumping) {
+      this.velocityY = this.jumpPower
+      this.isJumping = true
+    }
+  }
+
+  private moveLeft() {
+    this.playerX -= this.moveSpeed
+  }
+
+  private moveRight() {
+    this.playerX += this.moveSpeed
+  }
+
   private render() {
+    this.renderBackground()
+    this.renderGround()
+    this.renderPlayer()
+  }
+
+  private renderBackground() {
     this.ctx.fillStyle = '#87CEEB'
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+  }
 
+  private renderGround() {
     this.ctx.fillStyle = '#8B4513'
     this.ctx.fillRect(0, this.groundY, this.canvas.width, 100)
+  }
 
+  private renderPlayer() {
     this.ctx.fillStyle = '#FF0000'
     this.ctx.fillRect(this.playerX, this.playerY, this.playerSize, this.playerSize)
   }
