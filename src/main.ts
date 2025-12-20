@@ -55,56 +55,68 @@ async function waitForVideoReady(video: HTMLVideoElement): Promise<void> {
   })
 }
 
-function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement) {
+interface FaceScores {
+  faceDetected: boolean
+  eyeBlinkLeft: number | undefined
+  eyeBlinkRight: number | undefined
+  jawOpen: number | undefined
+}
+
+function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement): FaceScores {
   const results = faceLandmarker.detectForVideo(video, performance.now())
 
-  const faceDetectedEl = document.querySelector<HTMLSpanElement>('#faceDetected')!
-  const eyeBlinkLeftEl = document.querySelector<HTMLSpanElement>('#eyeBlinkLeft')!
-  const eyeBlinkRightEl = document.querySelector<HTMLSpanElement>('#eyeBlinkRight')!
-  const jawOpenEl = document.querySelector<HTMLSpanElement>('#jawOpen')!
+  let leftScore: number | undefined
+  let rightScore: number | undefined
+  let jawScore: number | undefined
+  let faceDetected = false
 
   if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-    faceDetectedEl.textContent = 'Yes'
-
+    faceDetected = true
     if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
       const blendshapes = results.faceBlendshapes[0].categories
       const eyeBlinkLeft = blendshapes.find(b => b.categoryName === 'eyeBlinkLeft')
       const eyeBlinkRight = blendshapes.find(b => b.categoryName === 'eyeBlinkRight')
       const jawOpen = blendshapes.find(b => b.categoryName === 'jawOpen')
 
-      const leftScore = eyeBlinkLeft?.score
-      const rightScore = eyeBlinkRight?.score
-      const jawScore = jawOpen?.score
-
-      if (leftScore !== undefined) {
-        eyeBlinkLeftEl.textContent = `${leftScore >= 0.5 ? 'YES' : 'NO'} (${leftScore.toFixed(3)})`
-      } else {
-        eyeBlinkLeftEl.textContent = '-'
-      }
-
-      if (rightScore !== undefined) {
-        eyeBlinkRightEl.textContent = `${rightScore >= 0.5 ? 'YES' : 'NO'} (${rightScore.toFixed(3)})`
-      } else {
-        eyeBlinkRightEl.textContent = '-'
-      }
-
-      if (jawScore !== undefined) {
-        jawOpenEl.textContent = `${jawScore >= 0.5 ? 'YES' : 'NO'} (${jawScore.toFixed(3)})`
-      } else {
-        jawOpenEl.textContent = '-'
-      }
+      leftScore = eyeBlinkLeft?.score
+      rightScore = eyeBlinkRight?.score
+      jawScore = jawOpen?.score
     }
-  } else {
-    faceDetectedEl.textContent = 'No'
-    eyeBlinkLeftEl.textContent = '-'
-    eyeBlinkRightEl.textContent = '-'
-    jawOpenEl.textContent = '-'
   }
 
-  requestAnimationFrame(() => detectFace(faceLandmarker, video))
+  return { faceDetected, eyeBlinkLeft: leftScore, eyeBlinkRight: rightScore, jawOpen: jawScore }
 }
 
-function gameLoop(canvas: HTMLCanvasElement) {
+function updateUI(scores: FaceScores) {
+  const faceDetectedEl = document.querySelector<HTMLSpanElement>('#faceDetected')!
+  const eyeBlinkLeftEl = document.querySelector<HTMLSpanElement>('#eyeBlinkLeft')!
+  const eyeBlinkRightEl = document.querySelector<HTMLSpanElement>('#eyeBlinkRight')!
+  const jawOpenEl = document.querySelector<HTMLSpanElement>('#jawOpen')!
+
+  const { faceDetected, eyeBlinkLeft, eyeBlinkRight, jawOpen } = scores
+
+  faceDetectedEl.textContent = faceDetected ? 'YES' : 'NO'
+
+  if (eyeBlinkLeft !== undefined) {
+    eyeBlinkLeftEl.textContent = `${eyeBlinkLeft >= 0.5 ? 'YES' : 'NO'} (${eyeBlinkLeft.toFixed(3)})`
+  } else {
+    eyeBlinkLeftEl.textContent = '-'
+  }
+
+  if (eyeBlinkRight !== undefined) {
+    eyeBlinkRightEl.textContent = `${eyeBlinkRight >= 0.5 ? 'YES' : 'NO'} (${eyeBlinkRight.toFixed(3)})`
+  } else {
+    eyeBlinkRightEl.textContent = '-'
+  }
+
+  if (jawOpen !== undefined) {
+    jawOpenEl.textContent = `${jawOpen >= 0.5 ? 'YES' : 'NO'} (${jawOpen.toFixed(3)})`
+  } else {
+    jawOpenEl.textContent = '-'
+  }
+}
+
+function gameLoop(canvas: HTMLCanvasElement, scores: FaceScores) {
   const ctx = canvas.getContext('2d')!
 
   ctx.fillStyle = '#87CEEB'
@@ -115,8 +127,6 @@ function gameLoop(canvas: HTMLCanvasElement) {
 
   ctx.fillStyle = '#FF0000'
   ctx.fillRect(50, canvas.height - 130, 30, 30)
-
-  requestAnimationFrame(() => gameLoop(canvas))
 }
 
 async function main() {
@@ -128,8 +138,14 @@ async function main() {
   const faceLandmarker = await setupFaceLandmarker()
   await waitForVideoReady(video)
 
-  detectFace(faceLandmarker, video)
-  gameLoop(canvas)
+  function loop() {
+    const scores = detectFace(faceLandmarker, video!)
+    updateUI(scores)
+    gameLoop(canvas, scores)
+    requestAnimationFrame(loop)
+  }
+
+  loop()
 }
 
 main()
