@@ -7,6 +7,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <p>Face detected: <span id="faceDetected">-</span></p>
     <p>eyeBlinkLeft: <span id="eyeBlinkLeft">-</span></p>
     <p>eyeBlinkRight: <span id="eyeBlinkRight">-</span></p>
+    <p>jawOpen: <span id="jawOpen">-</span></p>
   </div>
 `
 
@@ -57,6 +58,7 @@ function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement) {
   const faceDetectedEl = document.querySelector<HTMLSpanElement>('#faceDetected')!
   const eyeBlinkLeftEl = document.querySelector<HTMLSpanElement>('#eyeBlinkLeft')!
   const eyeBlinkRightEl = document.querySelector<HTMLSpanElement>('#eyeBlinkRight')!
+  const jawOpenEl = document.querySelector<HTMLSpanElement>('#jawOpen')!
 
   if (results.faceLandmarks && results.faceLandmarks.length > 0) {
     faceDetectedEl.textContent = 'Yes'
@@ -65,14 +67,17 @@ function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement) {
       const blendshapes = results.faceBlendshapes[0].categories
       const eyeBlinkLeft = blendshapes.find(b => b.categoryName === 'eyeBlinkLeft')
       const eyeBlinkRight = blendshapes.find(b => b.categoryName === 'eyeBlinkRight')
+      const jawOpen = blendshapes.find(b => b.categoryName === 'jawOpen')
 
       eyeBlinkLeftEl.textContent = eyeBlinkLeft?.score.toFixed(3) ?? '-'
       eyeBlinkRightEl.textContent = eyeBlinkRight?.score.toFixed(3) ?? '-'
+      jawOpenEl.textContent = jawOpen?.score.toFixed(3) ?? '-'
     }
   } else {
     faceDetectedEl.textContent = 'No'
     eyeBlinkLeftEl.textContent = '-'
     eyeBlinkRightEl.textContent = '-'
+    jawOpenEl.textContent = '-'
   }
 
   requestAnimationFrame(() => detectFace(faceLandmarker, video))
