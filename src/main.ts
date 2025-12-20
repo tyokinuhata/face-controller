@@ -1,11 +1,20 @@
 import { setupFaceLandmarker, detectFace } from './features/faceLandmarker'
 import { Game } from './features/game'
 import { setupCamera, waitForVideoReady } from './features/camera'
-import { initializeHTML, updateUI } from './features/ui'
+import { initializeInfoUI, updateUI } from './features/ui'
 
-initializeHTML()
+document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+  <h1>顔面コントローラー 🤪</h1>
+  <div style="display: flex; gap: 10px;">
+    <video id="webcam" autoplay playsinline style="transform: scaleX(-1);"></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+  </div>
+  <div id="detect-info"></div>
+`
 
 async function main() {
+  initializeInfoUI()
+
   const video = await setupCamera()
   if (!video) return
 
