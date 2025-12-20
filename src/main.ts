@@ -4,10 +4,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>face-controller</h1>
   <video id="webcam" autoplay playsinline style="transform: scaleX(-1);"></video>
   <div id="info">
-    <p>Face detected: <span id="faceDetected">-</span></p>
-    <p>eyeBlinkLeft: <span id="eyeBlinkLeft">-</span></p>
-    <p>eyeBlinkRight: <span id="eyeBlinkRight">-</span></p>
-    <p>jawOpen: <span id="jawOpen">-</span></p>
+    <div>Face detected: <span id="faceDetected">-</span></div>
+    <div>Eye blink left: <span id="eyeBlinkLeft">-</span></div>
+    <div>Eye blink right: <span id="eyeBlinkRight">-</span></div>
+    <div>Jaw open: <span id="jawOpen">-</span></div>
   </div>
 `
 
@@ -69,9 +69,27 @@ function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement) {
       const eyeBlinkRight = blendshapes.find(b => b.categoryName === 'eyeBlinkRight')
       const jawOpen = blendshapes.find(b => b.categoryName === 'jawOpen')
 
-      eyeBlinkLeftEl.textContent = eyeBlinkLeft?.score.toFixed(3) ?? '-'
-      eyeBlinkRightEl.textContent = eyeBlinkRight?.score.toFixed(3) ?? '-'
-      jawOpenEl.textContent = jawOpen?.score.toFixed(3) ?? '-'
+      const leftScore = eyeBlinkLeft?.score
+      const rightScore = eyeBlinkRight?.score
+      const jawScore = jawOpen?.score
+
+      if (leftScore !== undefined) {
+        eyeBlinkLeftEl.textContent = `${leftScore >= 0.5 ? 'YES' : 'NO'} (${leftScore.toFixed(3)})`
+      } else {
+        eyeBlinkLeftEl.textContent = '-'
+      }
+
+      if (rightScore !== undefined) {
+        eyeBlinkRightEl.textContent = `${rightScore >= 0.5 ? 'YES' : 'NO'} (${rightScore.toFixed(3)})`
+      } else {
+        eyeBlinkRightEl.textContent = '-'
+      }
+
+      if (jawScore !== undefined) {
+        jawOpenEl.textContent = `${jawScore >= 0.5 ? 'YES' : 'NO'} (${jawScore.toFixed(3)})`
+      } else {
+        jawOpenEl.textContent = '-'
+      }
     }
   } else {
     faceDetectedEl.textContent = 'No'
