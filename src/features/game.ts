@@ -1,50 +1,65 @@
 import type { FaceScores } from './faceLandmarker'
 
-export interface GameState {
-  playerX: number
-  playerY: number
-  velocityY: number
-  isJumping: boolean
-}
+export class Game {
+  private canvas: HTMLCanvasElement
+  private ctx: CanvasRenderingContext2D
+  private playerX: number
+  private playerY: number
+  private velocityY: number
+  private isJumping: boolean
 
-export function gameLoop(canvas: HTMLCanvasElement, scores: FaceScores, state: GameState) {
-  const ctx = canvas.getContext('2d')!
-  const groundY = canvas.height - 100
-  const playerSize = 30
-  const gravity = 0.5
-  const jumpPower = -10
-  const moveSpeed = 5
+  private readonly groundY: number
+  private readonly playerSize = 30
+  private readonly gravity = 0.5
+  private readonly jumpPower = -10
+  private readonly moveSpeed = 5
 
-  if (scores.jawOpen !== undefined && scores.jawOpen >= 0.5 && !state.isJumping) {
-    state.velocityY = jumpPower
-    state.isJumping = true
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas
+    this.ctx = canvas.getContext('2d')!
+    this.groundY = canvas.height - 100
+    this.playerX = 50
+    this.playerY = this.groundY - this.playerSize
+    this.velocityY = 0
+    this.isJumping = false
   }
 
-  if (scores.eyeBlinkLeft !== undefined && scores.eyeBlinkLeft >= 0.5) {
-    state.playerX -= moveSpeed
+  update(scores: FaceScores) {
+    if (scores.jawOpen !== undefined && scores.jawOpen >= 0.5 && !this.isJumping) {
+      this.velocityY = this.jumpPower
+      this.isJumping = true
+    }
+
+    if (scores.eyeBlinkLeft !== undefined && scores.eyeBlinkLeft >= 0.5) {
+      this.playerX -= this.moveSpeed
+    }
+
+    if (scores.eyeBlinkRight !== undefined && scores.eyeBlinkRight >= 0.5) {
+      this.playerX += this.moveSpeed
+    }
+
+    this.playerX = Math.max(0, Math.min(this.canvas.width - this.playerSize, this.playerX))
+
+    this.velocityY += this.gravity
+    this.playerY += this.velocityY
+
+    if (this.playerY >= this.groundY - this.playerSize) {
+      this.playerY = this.groundY - this.playerSize
+      this.velocityY = 0
+      this.isJumping = false
+    }
+
+    this.render()
   }
 
-  if (scores.eyeBlinkRight !== undefined && scores.eyeBlinkRight >= 0.5) {
-    state.playerX += moveSpeed
+  private render() {
+    this.ctx.fillStyle = '#87CEEB'
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    this.ctx.fillStyle = '#8B4513'
+    this.ctx.fillRect(0, this.groundY, this.canvas.width, 100)
+
+    this.ctx.fillStyle = '#FF0000'
+    this.ctx.fillRect(this.playerX, this.playerY, this.playerSize, this.playerSize)
   }
-
-  state.playerX = Math.max(0, Math.min(canvas.width - playerSize, state.playerX))
-
-  state.velocityY += gravity
-  state.playerY += state.velocityY
-
-  if (state.playerY >= groundY - playerSize) {
-    state.playerY = groundY - playerSize
-    state.velocityY = 0
-    state.isJumping = false
-  }
-
-  ctx.fillStyle = '#87CEEB'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-  ctx.fillStyle = '#8B4513'
-  ctx.fillRect(0, groundY, canvas.width, 100)
-
-  ctx.fillStyle = '#FF0000'
-  ctx.fillRect(state.playerX, state.playerY, playerSize, playerSize)
 }
