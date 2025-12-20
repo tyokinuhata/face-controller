@@ -2,7 +2,7 @@ import type { FaceScores } from './faceLandmarker'
 
 export function initializeHTML() {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-    <h1>face-controller</h1>
+    <h1>顔面コントローラー 🤪</h1>
     <div style="display: flex; gap: 10px;">
       <video id="webcam" autoplay playsinline style="transform: scaleX(-1);"></video>
       <canvas id="canvas" width="640" height="480"></canvas>
