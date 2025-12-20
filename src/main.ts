@@ -38,7 +38,7 @@ async function setupFaceLandmarker(): Promise<FaceLandmarker> {
 }
 
 async function waitForVideoReady(video: HTMLVideoElement): Promise<void> {
-  if (video.readyState >= 2) return
+  if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return
 
   return new Promise((resolve) => {
     video.addEventListener('loadeddata', () => resolve(), { once: true })
