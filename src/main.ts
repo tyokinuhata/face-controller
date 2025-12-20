@@ -3,6 +3,11 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>face-controller</h1>
   <video id="webcam" autoplay playsinline style="transform: scaleX(-1);"></video>
+  <div id="info">
+    <p>Face detected: <span id="faceDetected">-</span></p>
+    <p>eyeBlinkLeft: <span id="eyeBlinkLeft">-</span></p>
+    <p>eyeBlinkRight: <span id="eyeBlinkRight">-</span></p>
+  </div>
 `
 
 async function setupCamera(): Promise<HTMLVideoElement | undefined> {
@@ -33,7 +38,8 @@ async function setupFaceLandmarker(): Promise<FaceLandmarker> {
       delegate: 'GPU'
     },
     runningMode: 'VIDEO',
-    numFaces: 1
+    numFaces: 1,
+    outputFaceBlendshapes: true
   })
 }
 
@@ -48,10 +54,25 @@ async function waitForVideoReady(video: HTMLVideoElement): Promise<void> {
 function detectFace(faceLandmarker: FaceLandmarker, video: HTMLVideoElement) {
   const results = faceLandmarker.detectForVideo(video, performance.now())
 
+  const faceDetectedEl = document.querySelector<HTMLSpanElement>('#faceDetected')!
+  const eyeBlinkLeftEl = document.querySelector<HTMLSpanElement>('#eyeBlinkLeft')!
+  const eyeBlinkRightEl = document.querySelector<HTMLSpanElement>('#eyeBlinkRight')!
+
   if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-    console.log('Face detected')
+    faceDetectedEl.textContent = 'Yes'
+
+    if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
+      const blendshapes = results.faceBlendshapes[0].categories
+      const eyeBlinkLeft = blendshapes.find(b => b.categoryName === 'eyeBlinkLeft')
+      const eyeBlinkRight = blendshapes.find(b => b.categoryName === 'eyeBlinkRight')
+
+      eyeBlinkLeftEl.textContent = eyeBlinkLeft?.score.toFixed(3) ?? '-'
+      eyeBlinkRightEl.textContent = eyeBlinkRight?.score.toFixed(3) ?? '-'
+    }
   } else {
-    console.log('No face detected')
+    faceDetectedEl.textContent = 'No'
+    eyeBlinkLeftEl.textContent = '-'
+    eyeBlinkRightEl.textContent = '-'
   }
 
   requestAnimationFrame(() => detectFace(faceLandmarker, video))
