@@ -113,6 +113,9 @@ function gameLoop(canvas: HTMLCanvasElement) {
   ctx.fillStyle = '#8B4513'
   ctx.fillRect(0, canvas.height - 100, canvas.width, 100)
 
+  ctx.fillStyle = '#FF0000'
+  ctx.fillRect(50, canvas.height - 130, 30, 30)
+
   requestAnimationFrame(() => gameLoop(canvas))
 }
 
