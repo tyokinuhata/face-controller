@@ -1,5 +1,5 @@
 import { setupFaceLandmarker, detectFace } from './features/faceLandmarker'
-import { Game } from './features/game'
+import { Game } from './features/game/game'
 import { setupCamera, waitForVideoReady } from './features/camera'
 import { initializeInfoUI, updateUI } from './features/ui'
 
