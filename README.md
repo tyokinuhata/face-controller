@@ -1,6 +1,7 @@
 # 顔面コントローラー
 
 - 表情筋を使って2Dゲームを操作するデモ
+- [ここ](https://tyokinuhata.github.io/face-controller/) から体験可能
 
 ## 使い方
 
