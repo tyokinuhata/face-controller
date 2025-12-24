@@ -8,7 +8,7 @@
 $ npm install
 $ npm run dev
 # その後、ブラウザでカメラアクセスを許可
-$ open http://localhost:5173
+$ open http://localhost:5173/face-controller/
 
 # 一時的にインターネットからアクセス
 $ brew install cloudflared
